@@ -15,25 +15,20 @@ class LeaderboardController extends Controller
     public function index(){
         $originalUsers = Leaderboard::with(["referredUsers" => function($query){
             $query->orderByDesc('total_wagered');
-        }])->latest()->first();
+        }])->latest("id")->first();
         
         $leaderboard = Leaderboard::latest()->first();
 
         if ($originalUsers) {
-            // $users = $originalUsers->referredUsers->map(function ($user) {
-            //     $name = $user->name;
-            //     $maskedName = strlen($name) <= 2
-            //         ? $name  // if name is too short, return as-is
-            //         : substr($name, 0, 1) . str_repeat('*', strlen($name) - 2) . substr($name, -1);
+            $users = $originalUsers->referredUsers->map(function ($user) {
+                return [
+                    'avatar' => $user->avatar,
+                    'name' => $user->name,
+                    'total_wagered' => (float) $user->total_wagered * .01,
+                ];
+            });
 
-            //     return [
-            //         'avatar' => $user->avatar,
-            //         'name' => $maskedName,
-            //         'total_wagered' => (float) $user->total_wagered,
-            //     ];
-            // });
-
-            $users = $originalUsers->referredUsers;
+            // $users = $originalUsers->referredUsers;
             
             return response()->json([
                 "leaderboard" => $leaderboard,
@@ -64,8 +59,9 @@ class LeaderboardController extends Controller
     {
         $history = Leaderboard::where("has_winner", 1)
             ->with(['referredUsers' => function ($query) {
-                $query->where('status', 'winner');
+                $query->where('status', 'first');
             }])
+            ->orderByDesc("created_at")
             ->get();
 
         if ($history->isNotEmpty()) {
@@ -159,11 +155,16 @@ class LeaderboardController extends Controller
                     );
                 }
 
-                $leaderboard = Leaderboard::with("referredUsers")->latest()->first();
+                $leaderboard = Leaderboard::with(["referredUsers" => function($query){
+                    $query->orderByDesc('total_wagered');
+                }])->latest("id")->first();
+
+                $topUsers = $leaderboard->referredUsers->sortByDesc('total_wagered')->take(3)->values();
 
                 return response()->json([
                     'message' => 'Users saved to leaderboard successfully',
                     'leaderboard' => $leaderboard,
+                    'top_three' => $topUsers,
                     'count'   => count($users),
                 ]);
             }
@@ -171,8 +172,36 @@ class LeaderboardController extends Controller
 
     }
 
+    // public function declareWinner(){
+    //     $originalUsers = Leaderboard::with("referredUsers")->latest("id")->first();
+    //     $prize = Setting::latest()->first();
+
+    //     if ($originalUsers) {
+    //         $originalUsers->update([
+    //             "has_winner" => true,
+    //             "prize" => $prize["first_prize"],
+    //         ]);
+
+    //         $topUser = $originalUsers->referredUsers->sortByDesc('total_wagered')->first();
+
+    //         if ($topUser) {
+    //             $topUser->update([
+    //                 'status' => 'winner',
+    //             ]);
+
+    //             return response()->json([
+    //                 "message" => "Successfully Declared"
+    //             ], 200);
+    //         }
+    //     } else {
+    //         return response()->json([
+    //             "message" => "404"
+    //         ], 404);
+    //     }
+    // }
+
     public function declareWinner(){
-        $originalUsers = Leaderboard::with("referredUsers")->latest()->first();
+        $originalUsers = Leaderboard::with("referredUsers")->latest("id")->first();
         $prize = Setting::latest()->first();
 
         if ($originalUsers) {
@@ -181,21 +210,24 @@ class LeaderboardController extends Controller
                 "prize" => $prize["first_prize"],
             ]);
 
-            $topUser = $originalUsers->referredUsers->sortByDesc('total_wagered')->first();
+            $topUsers = $originalUsers->referredUsers->sortByDesc('total_wagered')->take(3)->values();
 
-            if ($topUser) {
-                $topUser->update([
-                    'status' => 'winner',
+            $statuses = ['first', 'second', 'third'];
+
+            foreach ($topUsers as $index => $user) {
+                $user->update([
+                    'status' => $statuses[$index],
                 ]);
-
-                return response()->json([
-                    "message" => "Successfully Declared"
-                ], 200);
             }
+
+            return response()->json([
+                "message" => "Successfully Declared"
+            ], 200);
         } else {
             return response()->json([
                 "message" => "404"
             ], 404);
         }
     }
+
 }

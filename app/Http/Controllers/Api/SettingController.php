@@ -12,7 +12,7 @@ class SettingController extends Controller
 {
     public function index()
     {
-        $settings = Setting::latest()->first();
+        $settings = Setting::latest("id")->first();
 
         if($settings){
             return response()->json([
@@ -27,8 +27,8 @@ class SettingController extends Controller
     }
 
     public function settingsWithLeaderboards(){
-        $settings = Setting::latest()->first();
-        $leaderboard = Leaderboard::latest()->first();
+        $settings = Setting::latest("id")->first();
+        $leaderboard = Leaderboard::latest("id")->first();
 
         return response()->json([
             'settings' => $settings,
@@ -67,7 +67,7 @@ class SettingController extends Controller
                 'is_active',
             ]));
 
-            $newSettings = Setting::latest()->first();
+            $newSettings = Setting::latest("id")->first();
 
             return response()->json([
                 'message' => 'Settings updated successfully',
