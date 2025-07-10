@@ -20,19 +20,21 @@ class LeaderboardController extends Controller
         $leaderboard = Leaderboard::latest()->first();
 
         if ($originalUsers) {
-            $users = $originalUsers->referredUsers->map(function ($user) {
-                $name = $user->name;
-                $maskedName = strlen($name) <= 2
-                    ? $name  // if name is too short, return as-is
-                    : substr($name, 0, 1) . str_repeat('*', strlen($name) - 2) . substr($name, -1);
+            // $users = $originalUsers->referredUsers->map(function ($user) {
+            //     $name = $user->name;
+            //     $maskedName = strlen($name) <= 2
+            //         ? $name  // if name is too short, return as-is
+            //         : substr($name, 0, 1) . str_repeat('*', strlen($name) - 2) . substr($name, -1);
 
-                return [
-                    'avatar' => $user->avatar,
-                    'name' => $maskedName,
-                    'total_wagered' => (float) $user->total_wagered,
-                ];
-            });
+            //     return [
+            //         'avatar' => $user->avatar,
+            //         'name' => $maskedName,
+            //         'total_wagered' => (float) $user->total_wagered,
+            //     ];
+            // });
 
+            $users = $originalUsers->referredUsers;
+            
             return response()->json([
                 "leaderboard" => $leaderboard,
                 'data' => $users,
