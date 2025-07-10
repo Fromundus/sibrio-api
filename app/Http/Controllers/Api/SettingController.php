@@ -41,12 +41,13 @@ class SettingController extends Controller
         $validator = Validator::make($request->all(), [
             'referral_code' => "required",
             'referral_link' => "required",
-            'leaderboard_type' => "required",
+            // 'leaderboard_type' => "required",
             'first_prize' => "required",
             'second_prize' => "required",
             'third_prize' => "required",
             'terms' => "required",
             'is_active' => "required",
+            'leaderboard_ends_at' => "required",
         ]);
 
         if($validator->fails()){
@@ -59,12 +60,13 @@ class SettingController extends Controller
             $settings->update($request->all([
                 'referral_code',
                 'referral_link',
-                'leaderboard_type',
+                // 'leaderboard_type',
                 'first_prize',
                 'second_prize',
                 'third_prize',
                 'terms',
                 'is_active',
+                'leaderboard_ends_at',
             ]));
 
             $newSettings = Setting::latest("id")->first();

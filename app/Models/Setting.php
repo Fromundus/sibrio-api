@@ -12,11 +12,12 @@ class Setting extends Model
     protected $fillable = [
         'referral_code',
         'referral_link',
-        'leaderboard_type',
+        // 'leaderboard_type',
         'first_prize',
         'second_prize',
         'third_prize',
         'terms',
         'is_active',
+        'leaderboard_ends_at',
     ];
 }
