@@ -26,6 +26,18 @@ class ReferredUser extends Model
         'status',
     ];
 
+    protected $hidden = [
+        "user_id",
+        'level',
+        'user_badges',
+        'steam_id',
+        "referral_since",
+        "last_seen",
+        "total_commission",
+        "commission_percent",
+        "is_depositor",
+    ];
+
     public function leaderboard(){
         return $this->belongsTo(Leaderboard::class);
     }
