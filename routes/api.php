@@ -52,7 +52,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/updateleaderboardsettings/{id}', [LeaderboardController::class, 'updateLeaderboardSettings']);
 
     Route::put('/updateleaderboardplayers/{id}', [LeaderboardController::class, 'updateLeaderboardPlayers']);
-    Route::put('/declarewinner', [LeaderboardController::class, 'declareWinner']);
+    Route::put('/declarewinner/{id}', [LeaderboardController::class, 'declareWinner']);
     Route::get('/settings-with-leaderboard', action: [SettingController::class, 'settingsWithLeaderboards']);
     
     // Route::get('/admin/{user_id}', [UserController::class, 'admin']);

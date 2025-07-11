@@ -86,6 +86,26 @@ class LeaderboardController extends Controller
         }
     }
 
+    public function leaderboardHistory()
+    {
+        $history = Leaderboard::where("has_winner", 1)->where("status", "ended")
+            ->with(['referredUsers' => function ($query) {
+                $query->orderByDesc("wagered_in_leaderboard")->take(3);
+            }])
+            ->orderByDesc("created_at")
+            ->get();
+
+        if ($history->isNotEmpty()) {
+            return response()->json([
+                "data" => $history,
+            ], 200);
+        } else {
+            return response()->json([
+                "message" => "No leaderboard history found",
+            ], 404);
+        }
+    }
+
     public function store(Request $request){
         $validator = Validator::make($request->all(), [
             "name" => "required",
@@ -240,26 +260,6 @@ class LeaderboardController extends Controller
         }
     }
 
-    public function leaderboardHistory()
-    {
-        $history = Leaderboard::where("has_winner", 1)
-            ->with(['referredUsers' => function ($query) {
-                $query->where('status', 'first');
-            }])
-            ->orderByDesc("created_at")
-            ->get();
-
-        if ($history->isNotEmpty()) {
-            return response()->json([
-                "data" => $history,
-            ], 200);
-        } else {
-            return response()->json([
-                "message" => "No leaderboard history found",
-            ], 404);
-        }
-    }
-
     public function updateLeaderboardPlayers(Request $request, $id)
     {
         if($request->cookie_still_active == "no"){
@@ -331,8 +331,7 @@ class LeaderboardController extends Controller
                         ->first();
 
                         $wageredAtStart = $existing->wagered_at_start ?? 0;
-                        $totalWagered = floatval($user['total_wagered']);
-                        $wageredInLeaderboard = $totalWagered - $wageredAtStart;
+                        $wageredInLeaderboard = $user['total_wagered'] - $wageredAtStart;
 
                         ReferredUser::updateOrCreate([
                             "user_id" => $user['user_id'],
@@ -392,12 +391,12 @@ class LeaderboardController extends Controller
 
     public function declareWinner($id){
         $originalUsers = Leaderboard::with("referredUsers")->where("id", $id)->first();
-        $prize = Setting::latest()->first();
 
         if ($originalUsers) {
             $originalUsers->update([
                 "has_winner" => true,
-                "prize" => $prize["first_prize"],
+                "leaderboard_ends_at" => Carbon::now(),
+                "status" => "ended",
             ]);
 
             $topUsers = $originalUsers->referredUsers->sortByDesc('wagered_in_leaderboard')->take(3)->values();
