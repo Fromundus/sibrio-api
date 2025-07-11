@@ -30,4 +30,11 @@ class Leaderboard extends Model
     public function referredUsers(){
         return $this->hasMany(ReferredUser::class);
     }
+
+    public function topReferredUsers(){
+        return $this->hasMany(ReferredUser::class)
+            ->orderByDesc('wagered_in_leaderboard')
+            ->limit(3);
+    }
+
 }
