@@ -23,6 +23,9 @@ return new class extends Migration
             $table->string('steam_id')->nullable();
             $table->unsignedBigInteger('referral_since')->nullable(); // UNIX timestamp
             $table->unsignedBigInteger('last_seen')->nullable(); // UNIX timestamp
+            $table->decimal('wagered_at_start', 15, 2)->default(0);
+            $table->decimal('wagered_at_end', 15, 2)->default(0)->nullable();
+            $table->decimal('wagered_in_leaderboard', 15, 2)->default(0);
             $table->decimal('total_wagered', 15, 2)->default(0);
             $table->decimal('total_commission', 15, 4)->default(0);
             $table->decimal('commission_percent', 5, 3)->default(0);

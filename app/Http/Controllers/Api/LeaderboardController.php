@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Leaderboard;
 use App\Models\ReferredUser;
 use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -16,7 +17,7 @@ class LeaderboardController extends Controller
     public function index(){
         // $leaderboards = Leaderboard::all();
         $leaderboards = Leaderboard::with(["referredUsers" => function($query){
-            $query->orderByDesc("total_wagered")->take(3);
+            $query->orderByDesc("wagered_in_leaderboard")->take(3);
         }])
         ->get();
 
@@ -33,7 +34,7 @@ class LeaderboardController extends Controller
 
     public function show($id){
         $originalUsers = Leaderboard::with(["referredUsers" => function($query){
-            $query->orderByDesc('total_wagered');
+            $query->orderByDesc('wagered_in_leaderboard');
         }])->where("id", $id)->first();
 
         $leaderboard = Leaderboard::where("id", $id)->first();
@@ -43,7 +44,7 @@ class LeaderboardController extends Controller
                 return [
                     'avatar' => $user->avatar,
                     'name' => $user->name,
-                    'total_wagered' => (float) $user->total_wagered * .01,
+                    'wagered_in_leaderboard' => (float) $user->wagered_in_leaderboard * .01,
                 ];
             });
 
@@ -60,7 +61,7 @@ class LeaderboardController extends Controller
 
     public function latestLeaderboard(){
         $originalUsers = Leaderboard::with(["referredUsers" => function($query){
-            $query->orderByDesc('total_wagered');
+            $query->orderByDesc('wagered_in_leaderboard');
         }])->latest("id")->first();
 
         $leaderboard = Leaderboard::latest("id")->first();
@@ -70,7 +71,7 @@ class LeaderboardController extends Controller
                 return [
                     'avatar' => $user->avatar,
                     'name' => $user->name,
-                    'total_wagered' => (float) $user->total_wagered * .01,
+                    'wagered_in_leaderboard' => (float) $user->wagered_in_leaderboard * .01,
                 ];
             });
 
@@ -134,38 +135,27 @@ class LeaderboardController extends Controller
                     foreach ($users as $user) {
                         ReferredUser::create(
                             [
-                                'user_id'            => $user['user_id'],
-                                'avatar'             => $user['avatar'],
-                                'level'              => $user['level'],
-                                'name'               => $user['name'],
-                                'steam_id'           => $user['steam_id'],
-                                'referral_since'     => $user['referral_since'],
-                                'last_seen'          => $user['last_seen'],
-                                'total_wagered'      => $user['total_wagered'],
-                                'total_commission'   => $user['total_commission'],
-                                'commission_percent' => $user['commission_percent'],
-                                'is_depositor'       => $user['is_depositor'],
-                                'leaderboard_id'     => $leaderboard->id,
+                                'user_id'                   => $user['user_id'],
+                                'avatar'                    => $user['avatar'],
+                                'level'                     => $user['level'],
+                                'name'                      => $user['name'],
+                                'steam_id'                  => $user['steam_id'],
+                                'referral_since'            => $user['referral_since'],
+                                'last_seen'                 => $user['last_seen'],
+                                'total_wagered'             => $user['total_wagered'],
+                                'wagered_at_start'          => 0,
+                                'wagered_in_leaderboard'    => $user['total_wagered'],
+                                'total_commission'          => $user['total_commission'],
+                                'commission_percent'        => $user['commission_percent'],
+                                'is_depositor'              => $user['is_depositor'],
+                                'leaderboard_id'            => $leaderboard->id,
                             ]
                         );
                     }
-
-                    // $leaderboard = Leaderboard::with(["referredUsers" => function($query){
-                    //     $query->orderByDesc('total_wagered');
-                    // }])->latest(column: "id")->first();
-
-                    // $topUsers = $leaderboard->referredUsers->sortByDesc('total_wagered')->take(3)->values();
-
-                    // return response()->json([
-                        //     'message' => 'Users saved to leaderboard successfully',
-                        //     'leaderboard' => $leaderboard,
-                        //     'top_three' => $topUsers,
-                        //     'count'   => count($users),
-                        // ]);
                         
                     if($leaderboard){
                         $updatedLeaderboards = Leaderboard::with(["referredUsers" => function($query){
-                            $query->orderByDesc("total_wagered")->take(3);
+                            $query->orderByDesc("wagered_in_leaderboard")->take(3);
                         }])
                         ->get();
 
@@ -225,7 +215,7 @@ class LeaderboardController extends Controller
                     
                 if($leaderboard){
                     $updatedLeaderboards = Leaderboard::with(["referredUsers" => function($query){
-                        $query->orderByDesc("total_wagered")->take(3);
+                        $query->orderByDesc("wagered_in_leaderboard")->take(3);
                     }])
                     ->get();
 
@@ -269,103 +259,6 @@ class LeaderboardController extends Controller
             ], 404);
         }
     }
-
-
-
-    // public function updateLeaderboard(Request $request)
-    // {
-    //     if($request->cookie_still_active == "yes"){
-    //         $validator = Validator::make($request->all(), [
-    //             "cookie_still_active" => "required",
-    //             "cookie" => "required",
-    //         ]);
-    //     } else {
-    //         $validator = Validator::make($request->all(), [
-    //             "cookie_still_active" => "required",
-    //         ]);
-    //     }
-
-    //     if($validator->fails()){
-    //         return response()->json([
-    //             "message" => $validator->errors()
-    //         ], 422);
-    //     } else {
-    //         $token = "";
-
-    //         if($request->cookie_still_active == "yes"){
-    //             $token = $request->cookie;
-    //         } else {
-    //             $leaderboard = Leaderboard::latest()->first();
-
-    //             $token = $leaderboard["cookie"];
-    //         }
-            
-    //         $referrals = Http::withHeaders([
-    //             'Cookie' => "auth_token={$token}",
-    //         ])
-    //             ->get('https://csgoempire.com/api/v2/referrals/referred-users?per_page=100&page=1');
-
-    //         if($referrals->json() === null){
-    //             $leaderboard = Leaderboard::latest()->first();
-
-    //             if($leaderboard){
-    //                 $leaderboard->update([
-    //                     "cookie_status" => "expired"
-    //                 ]);
-    
-    //                 return response()->json([
-    //                     "message" => "Cookie Expired",
-    //                     "leaderboard" => $leaderboard,
-    //                 ], 200);
-    //             } else {
-    //                 return response()->json([
-    //                     "message" => "Invalid Cookie"
-    //                 ], 200);
-    //             }
-
-    //         } else {
-    //             $users = $referrals->json()['data'] ?? [];
-
-    //             $leaderboard = Leaderboard::create([
-    //                 "cookie" => $token,
-    //                 "cookie_status" => "active",
-    //             ]);
-
-    //             foreach ($users as $user) {
-    //                 ReferredUser::create(
-    //                     [
-    //                         'user_id'            => $user['user_id'],
-    //                         'avatar'             => $user['avatar'],
-    //                         'level'              => $user['level'],
-    //                         'name'               => $user['name'],
-    //                         'steam_id'           => $user['steam_id'],
-    //                         'referral_since'     => $user['referral_since'],
-    //                         'last_seen'          => $user['last_seen'],
-    //                         'total_wagered'      => $user['total_wagered'],
-    //                         'total_commission'   => $user['total_commission'],
-    //                         'commission_percent' => $user['commission_percent'],
-    //                         'is_depositor'       => $user['is_depositor'],
-    //                         'leaderboard_id'     => $leaderboard->id,
-    //                     ]
-    //                 );
-    //             }
-
-    //             $leaderboard = Leaderboard::with(["referredUsers" => function($query){
-    //                 $query->orderByDesc('total_wagered');
-    //             }])->latest("id")->first();
-
-    //             $topUsers = $leaderboard->referredUsers->sortByDesc('total_wagered')->take(3)->values();
-
-    //             return response()->json([
-    //                 'message' => 'Users saved to leaderboard successfully',
-    //                 'leaderboard' => $leaderboard,
-    //                 'top_three' => $topUsers,
-    //                 'count'   => count($users),
-    //             ]);
-    //         }
-    //     }
-
-    // }
 
     public function updateLeaderboardPlayers(Request $request, $id)
     {
@@ -429,57 +322,63 @@ class LeaderboardController extends Controller
                     $leaderboard->update([
                         "cookie" => $token,
                         "cookie_status" => "active",
+                        "updated_at" => Carbon::now(),
                     ]);
 
-                    $oldUsers = ReferredUser::where("leaderboard_id", $id)->delete();
+                    foreach ($users as $user) {
+                        $existing = ReferredUser::where('user_id', $user['user_id'])
+                        ->where('leaderboard_id', $leaderboard->id)
+                        ->first();
 
-                    if($oldUsers){
-                        foreach ($users as $user) {
-                            ReferredUser::create(
-                                [
-                                    'user_id'            => $user['user_id'],
-                                    'avatar'             => $user['avatar'],
-                                    'level'              => $user['level'],
-                                    'name'               => $user['name'],
-                                    'steam_id'           => $user['steam_id'],
-                                    'referral_since'     => $user['referral_since'],
-                                    'last_seen'          => $user['last_seen'],
-                                    'total_wagered'      => $user['total_wagered'],
-                                    'total_commission'   => $user['total_commission'],
-                                    'commission_percent' => $user['commission_percent'],
-                                    'is_depositor'       => $user['is_depositor'],
-                                    'leaderboard_id'     => $leaderboard->id,
-                                ]
-                            );
-                        }
-    
-                        
-                        $originalUsers = Leaderboard::with(["referredUsers" => function($query){
-                            $query->orderByDesc('total_wagered');
-                        }])->where("id", $id)->first();
-                        
-                        $topUsers = $originalUsers->referredUsers->sortByDesc('total_wagered')->take(3)->values();
+                        $wageredAtStart = $existing->wagered_at_start ?? 0;
+                        $totalWagered = floatval($user['total_wagered']);
+                        $wageredInLeaderboard = $totalWagered - $wageredAtStart;
 
-                        $leaderboard = Leaderboard::where("id", $id)->first();
-
-                        if ($originalUsers) {
-                            $users = $originalUsers->referredUsers->map(function ($user) {
-                                return [
-                                    'avatar' => $user->avatar,
-                                    'name' => $user->name,
-                                    'total_wagered' => (float) $user->total_wagered * .01,
-                                ];
-                            });
-
-                            return response()->json([
-                                'message' => 'Users saved to leaderboard successfully',
-                                "leaderboard" => $leaderboard,
-                                'users' => $users,
-                                'top_three' => $topUsers,
-                            ], 200);
-                        }
+                        ReferredUser::updateOrCreate([
+                            "user_id" => $user['user_id'],
+                            "leaderboard_id" => $leaderboard->id,
+                        ], 
+                        [
+                            'avatar'             => $user['avatar'],
+                            'level'              => $user['level'],
+                            'name'               => $user['name'],
+                            'steam_id'           => $user['steam_id'],
+                            'referral_since'     => $user['referral_since'],
+                            'last_seen'          => $user['last_seen'],
+                            'total_wagered'      => $user['total_wagered'],
+                            'wagered_in_leaderboard'      => $wageredInLeaderboard,
+                            'total_commission'   => $user['total_commission'],
+                            'commission_percent' => $user['commission_percent'],
+                            'is_depositor'       => $user['is_depositor'],
+                            'leaderboard_id'     => $leaderboard->id,
+                        ]);
                     }
+
                     
+                    $originalUsers = Leaderboard::with(["referredUsers" => function($query){
+                        $query->orderByDesc('wagered_in_leaderboard');
+                    }])->where("id", $id)->first();
+                    
+                    $topUsers = $originalUsers->referredUsers->sortByDesc('wagered_in_leaderboard')->take(3)->values();
+
+                    $leaderboard = Leaderboard::where("id", $id)->first();
+
+                    if ($originalUsers) {
+                        $users = $originalUsers->referredUsers->map(function ($user) {
+                            return [
+                                'avatar' => $user->avatar,
+                                'name' => $user->name,
+                                'wagered_in_leaderboard' => (float) $user->wagered_in_leaderboard * .01,
+                            ];
+                        });
+
+                        return response()->json([
+                            'message' => 'Users saved to leaderboard successfully',
+                            "leaderboard" => $leaderboard,
+                            'users' => $users,
+                            'top_three' => $topUsers,
+                        ], 200);
+                    }
                 }
             } else {
                 return response()->json([
@@ -491,8 +390,8 @@ class LeaderboardController extends Controller
 
     }
 
-    public function declareWinner(){
-        $originalUsers = Leaderboard::with("referredUsers")->latest("id")->first();
+    public function declareWinner($id){
+        $originalUsers = Leaderboard::with("referredUsers")->where("id", $id)->first();
         $prize = Setting::latest()->first();
 
         if ($originalUsers) {
@@ -501,7 +400,7 @@ class LeaderboardController extends Controller
                 "prize" => $prize["first_prize"],
             ]);
 
-            $topUsers = $originalUsers->referredUsers->sortByDesc('total_wagered')->take(3)->values();
+            $topUsers = $originalUsers->referredUsers->sortByDesc('wagered_in_leaderboard')->take(3)->values();
 
             $statuses = ['first', 'second', 'third'];
 

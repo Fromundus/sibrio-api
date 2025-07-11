@@ -19,7 +19,10 @@ class ReferredUser extends Model
         'steam_id',
         'referral_since',
         'last_seen',
-        'total_wagered',
+        'wagered_at_start',
+        'wagered_at_end',
+        'wagered_in_leaderboard',
+        'total_wagered', // current wagered from api
         'total_commission',
         'commission_percent',
         'is_depositor',

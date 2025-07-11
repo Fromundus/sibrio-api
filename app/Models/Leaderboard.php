@@ -20,6 +20,7 @@ class Leaderboard extends Model
         "leaderboard_ends_at",
         'status',
         'description',
+        'updated_at'
     ];
 
     protected $hidden = [
