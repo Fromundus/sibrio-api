@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/leaderboards/{id}', [LeaderboardController::class, 'show']);
     Route::post('/createleaderboard', [LeaderboardController::class, 'store']);
     Route::put('/updateleaderboardsettings/{id}', [LeaderboardController::class, 'updateLeaderboardSettings']);
+    Route::put('/pauseleaderboard/{id}', [LeaderboardController::class, 'pauseLeaderboard']);
 
     Route::put('/updateleaderboardplayers/{id}', [LeaderboardController::class, 'updateLeaderboardPlayers']);
     Route::put('/declarewinner/{id}', [LeaderboardController::class, 'declareWinner']);

@@ -59,14 +59,13 @@ class LeaderboardController extends Controller
     }
 
     public function latestLeaderboard(){
-
         $leaderboards = Leaderboard::all();
         
         $originalUsers = Leaderboard::with(["referredUsers" => function($query){
             $query->orderByDesc('wagered_in_leaderboard');
-        }])->latest("id")->where("status", "active")->first();
+        }])->latest("id")->where("status", "active")->orWhere("status", "paused")->first();
 
-        $leaderboard = Leaderboard::latest("id")->where("status", "active")->first();
+        $leaderboard = Leaderboard::latest("id")->where("status", "active")->orWhere("status", "paused")->first();
 
         if($leaderboards->count() > 0){
             if ($originalUsers) {
@@ -139,7 +138,7 @@ class LeaderboardController extends Controller
             "first_prize" => "required",
             "second_prize" => "required",
             "third_prize" => "required",
-            "leaderboard_ends_at" => "required",
+            "leaderboard_ends_at" => "required|date|after:today",
             // "status" => "required",
             "description" => "required",
         ]);
@@ -292,7 +291,7 @@ class LeaderboardController extends Controller
             "first_prize" => "required",
             "second_prize" => "required",
             "third_prize" => "required",
-            "leaderboard_ends_at" => "required",
+            "leaderboard_ends_at" => "required|date|after:today",
             // "status" => "required",
             "description" => "required",
         ]);
@@ -349,7 +348,7 @@ class LeaderboardController extends Controller
                 "second_prize" => $request->second_prize,
                 "third_prize" => $request->third_prize,
                 "leaderboard_ends_at" => $request->leaderboard_ends_at,
-                "status" => "active",
+                // "status" => "active",
                 "description" => $request->description,
             ]);
                 
@@ -363,6 +362,27 @@ class LeaderboardController extends Controller
                     "data" => $updatedLeaderboards,
                 ], 200);
             }
+        }
+    }
+
+    public function pauseLeaderboard($id){
+        $leaderboard = Leaderboard::where("id", $id)->first();
+
+        if($leaderboard){
+            $leaderboard->update([
+                "status" => "paused"
+            ]);
+
+            $updatedLeaderboard = Leaderboard::where("id", $id)->first();
+
+            return response()->json([
+                "message" => "Successfully Updated",
+                "leaderboard" => $updatedLeaderboard,
+            ], 200);
+        } else {
+            return response()->json([
+                "message" => "Leaderboard not found"
+            ], 404);
         }
     }
 
@@ -426,6 +446,7 @@ class LeaderboardController extends Controller
                     "cookie" => $token,
                     "cookie_status" => "active",
                     "updated_at" => Carbon::now(),
+                    "status" => "active",
                 ]);
 
                 foreach ($users as $user) {
