@@ -10,10 +10,16 @@ class Leaderboard extends Model
     use HasFactory;
 
     protected $fillable = [
+        "name",
         "cookie",
         "cookie_status",
         "has_winner",
-        "prize",
+        "first_prize",
+        "second_prize",
+        "third_prize",
+        "leaderboard_ends_at",
+        'status',
+        'description',
     ];
 
     protected $hidden = [

@@ -13,10 +13,16 @@ return new class extends Migration
     {
         Schema::create('leaderboards', function (Blueprint $table) {
             $table->id();
+            $table->string("name");
             $table->text("cookie");
             $table->string("cookie_status")->default("active");
             $table->boolean("has_winner")->default(false);
-            $table->decimal("prize", 10, 2)->default(0);
+            $table->decimal("first_prize", 10, 2)->default(0);
+            $table->decimal("second_prize", 10, 2)->default(0);
+            $table->decimal("third_prize", 10, 2)->default(value: 0);
+            $table->dateTime("leaderboard_ends_at")->nullable();
+            $table->string('status')->default("active"); //acitve/paused/ended
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

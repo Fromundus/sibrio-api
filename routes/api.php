@@ -44,11 +44,13 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/updateuser/{id}', [UserController::class, 'update']);
     Route::put('/changepassword/{id}', [UserController::class, 'changePassword']);
     
-    Route::post('/updateleaderboard', [LeaderboardController::class, 'updateLeaderboard']);
     Route::post('/updatesettings', [SettingController::class, 'update']);
-    
+
+    Route::get('/leaderboards', [LeaderboardController::class, 'index']);
+    Route::get('/leaderboards/{id}', [LeaderboardController::class, 'show']);
+    Route::post('/createleaderboard', [LeaderboardController::class, 'store']);
+    Route::post('/updateleaderboard', [LeaderboardController::class, 'updateLeaderboard']);
     Route::put('/declarewinner', [LeaderboardController::class, 'declareWinner']);
-    
     Route::get('/settings-with-leaderboard', action: [SettingController::class, 'settingsWithLeaderboards']);
     
     // Route::get('/admin/{user_id}', [UserController::class, 'admin']);
@@ -69,7 +71,8 @@ Route::get('/referrals', [CsgoEmpireController::class, 'referrals']);
 
 Route::get('/settings', [SettingController::class, 'index']);
 
-Route::get('/leaderboard', [LeaderboardController::class, 'index']);
+// Route::get('/leaderboard', [LeaderboardController::class, 'activeLeaderboard']);
+Route::get('/latestleaderboard', [LeaderboardController::class, 'latestLeaderboard']);
 
 Route::get('/leaderboardhistory', [LeaderboardController::class, 'leaderboardHistory']);
 

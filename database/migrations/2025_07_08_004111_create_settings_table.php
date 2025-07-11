@@ -15,15 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string("referral_code")->nullable();
             $table->string("referral_link")->nullable();
-            // $table->string('leaderboard_type')->default('daily');
-            $table->decimal("first_prize", 10, 2)->default(0);
-            $table->decimal("second_prize", 10, 2)->default(0);
-            $table->decimal("third_prize", 10, 2)->default(0);
-            $table->text('terms')->nullable();
-            $table->boolean('is_active')->default(true);
-
-            $table->dateTime("leaderboard_ends_at")->nullable();
-
             $table->timestamps();
         });
     }

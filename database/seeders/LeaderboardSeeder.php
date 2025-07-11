@@ -20,9 +20,15 @@ class LeaderboardSeeder extends Seeder
             'cookie' => Str::random(32),
             'cookie_status' => 'active',
             'has_winner' => false,
-            'prize' => 1000.00,
             'created_at' => now(),
             'updated_at' => now(),
+            "name" =>  "Leaderboard",
+            "first_prize" => 100.00,
+            "second_prize" => 50.00,
+            "third_prize" => 20.00,
+            'leaderboard_ends_at' => Carbon::now()->addDays(7),
+            'description' => 'Top players for July rewards',
+            'status' => "active",
         ]);
 
         // Create 10 referred users for that leaderboard
