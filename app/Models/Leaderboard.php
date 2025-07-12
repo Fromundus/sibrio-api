@@ -27,14 +27,24 @@ class Leaderboard extends Model
         'cookie',
     ];
 
+    protected $appends = ['top_referred_users'];
+
     public function referredUsers(){
         return $this->hasMany(ReferredUser::class);
     }
 
-    public function topReferredUsers(){
-        return $this->hasMany(ReferredUser::class)
-            ->orderByDesc('wagered_in_leaderboard')
-            ->limit(3);
+    public function getTopReferredUsersAttribute()
+    {
+        return $this->referredUsers()
+        ->orderByDesc('wagered_in_leaderboard')
+        ->take(3)
+        ->get();
     }
+
+    // public function topReferredUsers(){
+    //     return $this->hasMany(ReferredUser::class)
+    //         ->orderByDesc('wagered_in_leaderboard')
+    //         ->limit(2);
+    // }
 
 }

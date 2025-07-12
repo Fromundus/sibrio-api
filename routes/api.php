@@ -70,12 +70,15 @@ Route::middleware('auth:sanctum')->group(function (){
 
 //PUBLIC API
 
-Route::get('/referrals', [CsgoEmpireController::class, 'referrals']);
+// Route::get('/referrals', [CsgoEmpireController::class, 'referrals']);
+
+
+// Route::get('/leaderboard', [LeaderboardController::class, 'activeLeaderboard']);
 
 Route::get('/settings', [SettingController::class, 'index']);
 
-// Route::get('/leaderboard', [LeaderboardController::class, 'activeLeaderboard']);
 Route::get('/latestleaderboard', [LeaderboardController::class, 'latestLeaderboard']);
+Route::get('/guestleaderboards/{id}', [LeaderboardController::class, 'guestShow']);
 
 Route::get('/leaderboardhistory', [LeaderboardController::class, 'leaderboardHistory']);
 

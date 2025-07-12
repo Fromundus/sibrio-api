@@ -16,8 +16,7 @@ class LeaderboardController extends Controller
 
     public function index(){
         // $leaderboards = Leaderboard::all();
-        $leaderboards = Leaderboard::with("topReferredUsers")
-        ->orderByDesc(column: "created_at")
+        $leaderboards = Leaderboard::orderByDesc(column: "created_at")
         ->get();
 
         if($leaderboards->count() > 0){
@@ -32,6 +31,33 @@ class LeaderboardController extends Controller
     }
 
     public function show($id){
+        $originalUsers = Leaderboard::with(["referredUsers" => function($query){
+            $query->orderByDesc('wagered_in_leaderboard');
+        }])->where("id", $id)->first();
+
+        $leaderboard = Leaderboard::where("id", $id)->first();
+
+        if ($originalUsers) {
+            $users = $originalUsers->referredUsers->map(function ($user) {
+                return [
+                    'avatar' => $user->avatar,
+                    'name' => $user->name,
+                    'wagered_in_leaderboard' => (float) $user->wagered_in_leaderboard * .01,
+                ];
+            });
+
+            return response()->json([
+                "leaderboard" => $leaderboard,
+                'users' => $users,
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'No leaderboard found'
+            ], 404);
+        }
+    }
+
+    public function guestShow($id){
         $originalUsers = Leaderboard::with(["referredUsers" => function($query){
             $query->orderByDesc('wagered_in_leaderboard');
         }])->where("id", $id)->first();
@@ -116,7 +142,6 @@ class LeaderboardController extends Controller
     public function leaderboardHistory()
     {
         $history = Leaderboard::where("has_winner", 1)->where("status", "ended")
-            ->with("topReferredUsers")
             ->orderByDesc("created_at")
             ->get();
 
@@ -199,8 +224,7 @@ class LeaderboardController extends Controller
                     }
                         
                     if($leaderboard){
-                        $updatedLeaderboards = Leaderboard::with("topReferredUsers")
-                        ->orderByDesc("created_at")
+                        $updatedLeaderboards = Leaderboard::orderByDesc("created_at")
                         ->get();
 
                         return response()->json([
@@ -265,8 +289,7 @@ class LeaderboardController extends Controller
                         }
                             
                         if($leaderboard){
-                            $updatedLeaderboards = Leaderboard::with("topReferredUsers")
-                            ->orderByDesc("created_at")
+                            $updatedLeaderboards = Leaderboard::orderByDesc("created_at")
                             ->get();
 
                             return response()->json([
@@ -353,8 +376,7 @@ class LeaderboardController extends Controller
             ]);
                 
             if($leaderboard){
-                $updatedLeaderboards = Leaderboard::with("topReferredUsers")
-                ->orderByDesc("created_at")
+                $updatedLeaderboards = Leaderboard::orderByDesc("created_at")
                 ->get();
 
                 return response()->json([
@@ -511,6 +533,12 @@ class LeaderboardController extends Controller
         $originalUsers = Leaderboard::with("referredUsers")->where("id", $id)->first();
 
         if ($originalUsers) {
+            foreach($originalUsers->referredUsers as $user){
+                $user->update([
+                    "wagered_at_end" => $user->total_wagered,
+                ]);
+            }
+
             $originalUsers->update([
                 "has_winner" => true,
                 "leaderboard_ends_at" => Carbon::now(),
