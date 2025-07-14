@@ -16,7 +16,7 @@ class LeaderboardController extends Controller
 
     public function index(){
         // $leaderboards = Leaderboard::all();
-        $leaderboards = Leaderboard::orderByDesc(column: "created_at")
+        $leaderboards = Leaderboard::orderByDesc(column: "id")
         ->get();
 
         if($leaderboards->count() > 0){
@@ -142,7 +142,7 @@ class LeaderboardController extends Controller
     public function leaderboardHistory()
     {
         $history = Leaderboard::where("has_winner", 1)->where("status", "ended")
-            ->orderByDesc("created_at")
+            ->orderByDesc("id")
             ->get();
 
         if ($history->isNotEmpty()) {
@@ -224,7 +224,7 @@ class LeaderboardController extends Controller
                     }
                         
                     if($leaderboard){
-                        $updatedLeaderboards = Leaderboard::orderByDesc("created_at")
+                        $updatedLeaderboards = Leaderboard::orderByDesc("id")
                         ->get();
 
                         return response()->json([
@@ -289,7 +289,7 @@ class LeaderboardController extends Controller
                         }
                             
                         if($leaderboard){
-                            $updatedLeaderboards = Leaderboard::orderByDesc("created_at")
+                            $updatedLeaderboards = Leaderboard::orderByDesc("id")
                             ->get();
 
                             return response()->json([
@@ -376,7 +376,7 @@ class LeaderboardController extends Controller
             ]);
                 
             if($leaderboard){
-                $updatedLeaderboards = Leaderboard::orderByDesc("created_at")
+                $updatedLeaderboards = Leaderboard::orderByDesc("id")
                 ->get();
 
                 return response()->json([
