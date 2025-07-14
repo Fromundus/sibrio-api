@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('app:check-leaderboards')->everyMinute();
+        $schedule->command('app:update-leaderboards')->hourly();
     }
 
     /**
