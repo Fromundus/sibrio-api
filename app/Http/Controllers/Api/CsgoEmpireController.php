@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
 class CsgoEmpireController extends Controller
 {
     public function referrals(Request $request)
-    {   
+    {
         $token = "";
         
         $referrals = Http::withHeaders([
